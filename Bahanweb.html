@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+	<meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <title>WebGis</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+	<!-- Marker Cluster CSS Library -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    
+    <style>
+  html, body, #map {
+    height: 100%;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+  }
+
+  /* Style untuk info biasa (bisa kamu pakai di layer info lain) */
+  .info {
+    padding: 6px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+  }
+
+  .info h2 {
+    margin: 0 0 5px;
+    color: #777;
+  }
+
+  /* Style khusus untuk judul di kanan atas */
+  .custom-title {
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 10px 14px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    font-family: 'Segoe UI', sans-serif;
+    max-width: 320px;
+  }
+  
+
+  .title-box .title-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .title-logo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+  }
+
+  .text-container h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: bold;
+    color: #1e3a8a; /* biru tua */
+    line-height: 1.2;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+    text-transform: uppercase;
+  }
+
+  .decor-line {
+    margin-top: 8px;
+    height: 3px;
+    background-color: #1e40af;
+    border-radius: 2px;
+  }
+
+  .webgis-header {
+  width: 100%;
+  background-color: #1f2e4d;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 30px;
+  box-sizing: border-box;
+}
+
+.header-logo {
+  height: 70px;
+}
+
+.header-logo.kiri {
+  margin-right: 10px;
+}
+
+.header-logo.kanan {
+  margin-left: 10px;
+}
+
+.header-title {
+  text-align: center;
+  flex-grow: 1;
+}
+
+.header-title h1 {
+  font-size: 22px;
+  font-weight: bold;
+  margin: 0;
+}
+
+</style>
+
+</head>
+<body>
+    <body style="background-color:mintcream;">
+        <title>WebGIS Pariwisata</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css" />
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+  <!-- Marker Cluster CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: mintcream;
+      font-family: Arial, sans-serif;
+    }
+
+    #map {
+      height: calc(100% - 50px); /* supaya ada ruang atas */
+      width: 100%;
+    }
+
+    .judul-webgis {
+      height: 50px;
+      background-color: #2c3e50;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+  </style>
+</head>
+
+<body>
+<div class="webgis-header">
+    <img src="lambangkabpkl.png" class="header-logo kiri" alt="Logo Pemkab">
+    <div class="header-title">
+      <h1>WebGIS Objek Wisata Kabupaten Pekalongan</h1>
+    </div>
+    <img src="unissula.png" class="header-logo kanan" alt="Logo UNISSULA">
+  </div>
+
+  <div id="map"></div>
+
+  <!-- Library JS -->
+  <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"></script>
+  <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+  <!-- Modal Bootstrap -->
+  <div class="modal fade" id="featureModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button class="close" type="button" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title text-primary" id="feature-title"></h4>
+        </div>
+        <div class="modal-body" id="feature-info"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+  var map = L.map('map').setView([-7.031629509761161, 109.58817717638425],20);
+
+    //Basemap
+        var basemap1 = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains:['mt0','mt1','mt2','mt3'],
+        attribution: 'Google Satellite',
+        }); 
+        
+        var basemap2 = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 20,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        });
+        
+        var basemap3 = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains:['mt0','mt1','mt2','mt3'],
+        attribution: 'Google Streets'
+        }); 
+        
+        basemap3.addTo(map);
+
+
+//Layer Titik Wisata
+
+const wisataLinks = { 
+  "Pantai Wonokerto": "https://maps.app.goo.gl/zAwqKVqy58uUupw68",
+  "Pantai Sunter Depok Indah": "https://maps.app.goo.gl/TerepAy95NSuoYxG8", 
+  "Silat Temanten": "https://maps.app.goo.gl/iwcAHREHY7uED6uR9",
+  "Nyadran/Sedekah Laut": "https://maps.app.goo.gl/2H6kcZtRp968ydVE8",
+  "Pantai Pasir Kencana": "https://maps.app.goo.gl/2b7d1f8c5a3k4Z6h9",
+  "Tapak Menjangan": "https://maps.app.goo.gl/8B8x3CGkvHp1uo18A",
+  "Sipare": "https://maps.app.goo.gl/d8vb5Kfv5aZnc5Bt7",
+  "Watu Ireng": "https://maps.app.goo.gl/6DuwfyQpJzFYHhJg9",
+  "Watubahan": "https://maps.app.goo.gl/LrtuYGu4PXwZ9cB3A",
+  "Welo Asri": "https://maps.app.goo.gl/o1y5y4xjgnuDWA3M9",
+  "Situs Lingga Yoni": "https://maps.app.goo.gl/G1qG97oG4kkkhoUZ7",
+  "Telaga Sigebyar Mangunan": "https://maps.app.goo.gl/52isRcdRMMLrhohz5",
+  "Watu Bangkong Adventure": "https://maps.app.goo.gl/ATX8w2T3KUBTK4DQ9", 
+  "Sikujang": "https://maps.app.goo.gl/nQ6EY45Afsv4RbsM9",
+  "Lolong Adventure": "https://maps.app.goo.gl/HaVN3uuxNsZFmWfi8",
+  "Bengkelung": "https://maps.app.goo.gl/QX7BjkYszRgx6KaB8",
+  "Curug Bidadari": "https://maps.app.goo.gl/Gb94F97QeNR9LonW6",
+  "Curug Madu":"https://maps.app.goo.gl/Cs4FLRnQ6MeoXPc69",
+  "Linggo Asri": "https://maps.app.goo.gl/U64Pj3sVAdeVkVS76",
+  "Kalipahingan": "https://maps.app.goo.gl/FDB3xnV4tcayQa4P7",
+  "Curug Siwatang":"https://maps.app.goo.gl/VkdNtcrTnKhWkAFf9",
+  "Curug Jlarang":"https://maps.app.goo.gl/p6DDVVcx19Lv1kp3A",
+  "Curug Muncar":"https://maps.app.goo.gl/HgGwLYytqihwvptb8",
+  "Curug Bajing":"https://maps.app.goo.gl/pr3FqfG4DMc21jTN8",
+  "Curug Lawe":"https://maps.app.goo.gl/wMVXjJGN6KGJ4aUm7",
+  "Black Canyon":"https://maps.app.goo.gl/dLZzLuYftZoZeDeM7",
+  "Kolam Renang Banyu Biru": "https://maps.app.goo.gl/DMawMB8eFCpZRBhS7",
+  "IBC": "https://maps.app.goo.gl/72ddctiMaFUY8KTT7",
+  "Kolam Renang DI Kampung": "https://maps.app.goo.gl/8CNhFH291h8VNhEy7",
+  "Kolam Renang Al-Kautsar": "https://maps.app.goo.gl/A48ht7C2xiFtBA3n7",
+  "Kolam Renang Prima Graha": "https://maps.app.goo.gl/gPawxszn1wpNVjAE9",
+  "Kolam Renang Tirto Asri": "https://maps.app.goo.gl/3b1d6Z2g5a4c7f8F9",
+  "La' Ranch": "https://maps.app.goo.gl/JQKpJHy1EabKgahm8",
+  "Kolam Renang Kulu Asri": "https://maps.app.goo.gl/H6SHwWL9xJCzfpAV7",
+  "Pasar Rindu Semilir": "https://maps.app.goo.gl/j24x6PG7xDvW7ASz6",
+  "Ciblon SIgesing": "https://maps.app.goo.gl/iBCTfLKGBcCKrmZQ6",
+  "Kampung Batik Wiradesa": "https://maps.app.goo.gl/puYPSEwdVmQEDG6D7",
+  "Makam Mbah Nurul Anam": "https://maps.app.goo.gl/D35ELAGDHTSo3Sy8A",
+  "Makam Ibu Siti Ambariyah": "https://maps.app.goo.gl/99vbkK3d1FzH2cAY8",
+  "Makam Abu Bakar bin Toha bin Yahya": "https://maps.app.goo.gl/Bb2qzyDuAhHgqpZ8A",
+  "Makam Mbah Gendon": "https://maps.app.goo.gl/owSDUYNS67G8FsyAA", 
+  "Sintren": "https://maps.app.goo.gl/WpYsyLpW2TSfbTxt6",
+  "Kuntulan": "https://maps.app.goo.gl/tyHR8Ushobkbb7ru7",
+  "Kuda Kepang": "https://maps.app.goo.gl/go13jiL86EDsxnjK6", 
+  "Makam Mbah Agung Roogoselo": "https://maps.app.goo.gl/VaArE8C6WGcz5AbU8", 
+  "Makam Ki Gede Penatasan Angin": "https://maps.app.goo.gl/VKS7NPADanw4j5Ag9",
+  "Makam Syekh Siti Jenar": "https://maps.app.goo.gl/ZMXkZ13jrj8j8v4h9",
+  "Sedekah Bumi": "https://maps.app.goo.gl/JSETtzsRAg5coaYx6", 
+  "Makam Wali Tanduran": "https://maps.app.goo.gl/wJVqtkBe8tU9r15J6", 
+  "Nyadran Telogo Mangunan": "https://maps.app.goo.gl/n724BPey466eQERx5", 
+  "Silat Temanten": "https://maps.app.goo.gl/7D7cpdgEkZjnaoq57", 
+  "Nyadran/Sedekah Laut": "https://maps.app.goo.gl/XygEcUEufcpqVgUj9",  
+};
+
+  // === Fungsi popup konten umum ===
+  function generatePopup(feature) {
+  const namaObjek = feature.properties.Obj_Wisata || "";
+  const fotoFile = feature.properties.fotoo ? feature.properties.fotoo.trim() + ".png" : "";
+  const imgPath = "data/image/" + fotoFile;
+
+  // Ambil tautan dari dictionary, jika tidak ada pakai "#" sebagai fallback
+  const mapsLink = wisataLinks[namaObjek] || "#";
+
+  console.log("Image Path: ", imgPath);
+  console.log("Foto File: ", fotoFile);
+
+  const imgTag = fotoFile
+    ? "<tr><td colspan='2'><img src='" + imgPath + "' style='width:100%; margin-top:5px; border-radius:3px;'></td></tr>"
+    : "";
+
+  return (
+    `<h5 style='text-align:center; margin-bottom:10px; font-weight:bold; color:#ED3500'>
+      <a href='${mapsLink}' target='_blank' style='text-decoration:none; color:#ED3500'>
+        ${namaObjek}
+      </a>
+    </h5>` +
+    "<table class='table table-striped table-bordered table-condensed'>" +
+    "<tr><th>Jenis Wisata</th><td>" + feature.properties.Jns_Wisata + "</td></tr>" +
+    "<tr><th>Lokasi</th><td>" + feature.properties.Lokasi + "</td></tr>" +
+    "<tr><th>Fasilitas</th><td>" + feature.properties.Fasilitas + "</td></tr>" +
+    "<tr><th>Kondisi</th><td>" + feature.properties.Eksisting + "</td></tr>" +
+    imgTag +
+    "</table>"
+  );
+}
+
+//Fungsi umum untuk membuat layer wisata
+function createLayer(geojsonPath, iconUrl) {
+  const layer = L.geoJSON(null, {
+    pointToLayer: function (feature, latlng) {
+      return L.marker(latlng, {
+        icon: L.icon({
+          iconUrl: iconUrl,
+          iconSize: [30, 30],
+          iconAnchor: [15, 30],
+          popupAnchor: [0, -30]
+        })
+      }).bindPopup(generatePopup(feature));
+    }
+  });
+
+  $.getJSON(geojsonPath, function (data) {
+    layer.addData(data);
+    map.addLayer(layer);
+    map.fitBounds(layer.getBounds());
+  });
+
+  return layer;
+}
+
+// === Inisialisasi semua layer wisata ===
+var bahanwisataalam    = createLayer("data/bahanwisataalam.geojson", "wisataalam.png");
+var bahanwisatabudaya  = createLayer("data/bahanwisatabudaya.geojson", "wisatabudayaa.png");
+var bahanwisatabuatan  = createLayer("data/bahanwisatabuatan.geojson", "wisatabuatann.png");
+
+
+
+    // LAYER JALAN KABUPATEN
+
+    var bahannjalann = L.geoJson(null, {
+    /* 1. FILTER: hanya jenis jalan tertentu */
+    filter: function (feature) {
+      const allowedTypes = [
+        "Jalan Arteri Primer",
+        "Jalan Kolektor Primer 2",
+        "Jalan Lokal Primer",
+        "Jalan Tol",
+        "Rel Kereta Api"
+      ];
+      const fungsi = feature.properties.Fungsi || "";
+      return allowedTypes.includes(fungsi.trim());
+    },
+
+    /* 2. STYLE: warna & model garis per fungsi jalan */
+    style: function (feature) {
+    // Normalisasi teks agar pencocokan tidak peka kapital/spasi ekstra
+    const fungsi = (feature.properties.Fungsi || "").toLowerCase().trim();
+
+    let warna = "black";   // default
+    let dash  = null;      // default garis penuh
+
+    if (fungsi === "jalan arteri primer") {
+      warna = "red";
+    } else if (fungsi === "jalan kolektor primer 2") {
+      warna = "orange";
+    } else if (fungsi === "jalan lokal primer") {
+      warna = "green";
+    } else if (fungsi === "jalan tol") {
+      warna = "blue";
+    } else if (fungsi === "rel kereta api") {
+      warna = "gray";
+      dash  = "4 4";      // garis putus‑putus
+    }
+
+    return {
+      color: warna,
+      weight: 2,
+      opacity: 1,
+      dashArray: dash          // null → garis penuh; "4 4" → putus‑putus
+    };
+  },
+
+    /* 3. INTERAKSI mouseover & mouseout */
+    onEachFeature: function (feature, layer) {
+    layer.on({
+      mouseover: function (e) {
+        const lyr = e.target;
+        lyr.setStyle({
+          weight: 3,
+          color: "yellow",
+          opacity: 1,
+          dashArray: null       // highlight selalu garis penuh
+        });
+        if (!L.Browser.ie && !L.Browser.opera) {
+          lyr.bringToFront();
+        }
+      },
+      mouseout: function (e) {
+        bahannjalann.resetStyle(e.target);  // kembalikan ke style semula
+      }
+    });
+
+    layer.bindTooltip(feature.properties.Nama_Jln || "-", {sticky: true});
+  }
+});
+
+  // Load GeoJSON
+  fetch("data/bahannjalann.geojson")   // sesuaikan path
+  .then(r => r.json())
+  .then(data => {
+    bahannjalann.addData(data);
+    bahannjalann.addTo(map);
+  });
+
+    //LAYER KABUPATEN
+		var bataskabbColors = {"Kabupaten":"#FAFAD2"} 
+        var bataskabb = L.geoJson(null, {
+			   style: function (feature) {
+				  return {
+					 fillColor: bataskabb [feature.properties.KAB],
+					 fillOpacity: 0,
+					 color: "blue",
+					 weight: 2,
+					 opacity: 1
+				  };
+			   },   
+
+			 onEachFeature: function (feature, layer) {
+               var content = "<table class='table table-striped table-bordered table-condensed'>" +
+                "<tr><th>Luas</th><td>" + " 326,29 Ha" + "</td></tr>" +
+                "</table";
+                
+                layer.off({
+				  mouseover: function (e) {  
+					 var layer = e.target;
+					 layer.setStyle({
+						weight: 2,
+						color: "#00FFFF",
+						opacity: 1,
+						fillColor: "yellow",
+						fillOpacity: 1
+					 });
+				  },
+					mouseout: function (e) { 
+					bataskabb.resetStyle(e.target);
+					map.closePopup();
+				  },
+                  click: function (e) {
+					  $("#feature-title").html("Keterangan");
+					  $("#feature-info").html(content);
+					  $("#featureModal").modal("show");
+				}
+			  });
+		 	 } 
+			});
+			$.getJSON("data/bataskabb.geojson", function (data) {
+			   bataskabb.addData(data);
+			   map.addLayer(bataskabb);
+			   map.fitBounds(bataskabb.getBounds());
+			});
+
+    //LAYER KECAMATAN
+		var bataskeccColors = {
+  "Siwalan": "#ffcdd2", "Wonokerto": "#f8bbd0", "Tirto": "#e1bee7", "Wiradesa": "#d1c4e9",
+  "Sragi": "#c5cae9", "Buaran": "#bbdefb", "Bojong": "#b2ebf2", "Kedungwuni": "#b2dfdb",
+  "Karangdadap": "#c8e6c9", "Wonopringgo": "#dcedc8", "Kesesi": "#f0f4c3", "Talun": "#81d4fa",
+  "Kajen": "#fff59d", "Karanganyar": "#ffecb3", "Doro": "#ffe0b2", "Kandangserang": "#ffab91",
+  "Lebakbarang": "#d7ccc8", "Petungkriono": "#e0e0e0", "Paninggaran": "#ef9a9a"
+};
+
+var bataskecc = L.geoJson(null, {
+  style: function (feature) {
+    return {
+      fillColor: bataskeccColors[feature.properties.KEC] || "#cccccc",
+      fillOpacity: 0.5,
+      color: "blue",
+      weight: 2,
+      opacity: 1
+    };
+  },
+
+  onEachFeature: function (feature, layer) {
+    var content = "<table class='table table-striped table-bordered table-condensed'>" +
+      "<tr><th>Kecamatan</th><td>" + feature.properties.KEC + "</td></tr>" +
+      "<tr><th>Luas</th><td>" + feature.properties.LUAS + " Ha</td></tr>" +
+      "</table>";
+
+    layer.off({
+      mouseover: function (e) {
+        var kec = e.target;
+        layer.setStyle({
+          weight: 2,
+          color: "#00FFFF",
+          opacity: 1,
+          fillColor: "yellow",
+          fillOpacity: 1
+        });
+      },
+      mouseout: function (e) {
+        bataskecc.resetStyle(e.target);
+        map.closePopup();
+      },
+      click: function (e) {
+        $("#feature-title").html("Keterangan");
+        $("#feature-info").html(content);
+        $("#featureModal").modal("show");
+      }
+    });
+  }
+});
+
+$.getJSON("data/bataskecc.geojson", function (data) {
+  bataskecc.addData(data);
+  map.addLayer(bataskecc);
+  map.fitBounds(bataskecc.getBounds());
+});
+
+ // CONTROL LAYERS
+  var baseMaps = {
+    'Open Street Map': basemap1,
+    'Google Streets': basemap2,
+    'Google Satellite': basemap3
+  };
+  var overlayMaps = {
+    'Wisata Alam': bahanwisataalam,
+    'Wisata Budaya': bahanwisatabudaya,
+    'Wisata Buatan': bahanwisatabuatan
+  };
+  L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
+
+        
+       </script>
+</body>
+</html>
